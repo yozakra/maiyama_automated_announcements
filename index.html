@@ -88,6 +88,7 @@
             <select id="lineSelect" onchange="updateForm()">
                 <option value="tozai">東西線</option>
                 <option value="horiri">堀理線</option>
+                <option value="tozaijoriri">東西堀理線</option>
             </select>
         </div>
         <div class="control-group">
@@ -179,7 +180,7 @@
         </div>
     </div>
 
-    <script>
+   <script>
         const CONTEXT_GAP = 600; 
 
         const stationsData = {
@@ -205,6 +206,21 @@
                 { id: "sakuranomori", name: "桜ノ杜", nameEn: "Sakuranomori", number: "H10", type: { local: true }, terminal: true, defaultDoor: "left" },
                 { id: "midoridai", name: "みどり台", nameEn: "Midoridai", number: "H11", type: { local: true }, terminal: false, defaultDoor: "left", fixedDoor: true },
                 { id: "ezakano", name: "江坂野", nameEn: "Ezakano", number: "H12", type: { local: true }, terminal: true, defaultDoor: "right" }
+            ],
+            tozaihoriri: [
+                { id: "maiyama", name: "舞山", nameEn: "Maiyama", number: "T01", type: { local: true, rapid: false, express: false, extra: false }, terminal: true, defaultDoor: "left" },
+                { id: "shin_maiyama", name: "新舞山", nameEn: "Shin-Maiyama", number: "T02", type: { local: true, rapid: false, express: false, extra: false }, terminal: false, defaultDoor: "left", fixedDoor: true },
+                { id: "yasugo", name: "安小", nameEn: "Yasugo", number: "T03", type: { local: true, rapid: false, express: false, extra: false }, terminal: false, defaultDoor: "left" },
+                { id: "natta", name: "鳴田", nameEn: "Natta", number: "T04", type: { local: true, rapid: false, express: false, extra: false }, terminal: false, defaultDoor: "right", fixedDoor: true },
+                { id: "megama", name: "芽蒲", nameEn: "Megama", number: "T05", type: { local: true, rapid: false, express: false, extra: false }, terminal: false, defaultDoor: "left" },
+                { id: "ikenoue", name: "池ノ上", nameEn: "Ikenoue", number: "T06", type: { local: true, rapid: false, express: false, extra: false }, terminal: false, defaultDoor: "right", fixedDoor: true },
+                { id: "akagawa", name: "赤川", nameEn: "Akagawa", number: "T07", type: { local: true, rapid: false, express: false, extra: false }, terminal: false, defaultDoor: "right", fixedDoor: true },
+                { id: "natsu", name: "那津", nameEn: "Natsu", number: "T08", type: { local: true, rapid: false, express: false, extra: false }, terminal: false, defaultDoor: "left" },
+                { id: "nishi_horiri", name: "西堀理", nameEn: "Nishi-Horiri", number: "T09", type: { local: true, rapid: false, express: false, extra: false }, terminal: false, defaultDoor: "left", fixedDoor: true },
+                { id: "chibe", name: "知部", nameEn: "Chibe", number: "H09", type: { local: true, rapid: false, express: false, extra: false }, terminal: false, defaultDoor: "right", fixedDoor: true },
+                { id: "sakuranomori", name: "桜ノ杜", nameEn: "Sakuranomori", number: "H10", type: { local: true, rapid: false, express: false, extra: false }, terminal: false, defaultDoor: "left" },
+                { id: "midoridai", name: "みどり台", nameEn: "Midoridai", number: "H11", type: { local: true, rapid: false, express: false, extra: false }, terminal: false, defaultDoor: "left", fixedDoor: true },
+                { id: "ezakano", name: "江坂野", nameEn: "Ezakano", number: "H12", type: { local: true, rapid: false, express: false, extra: false }, terminal: true, defaultDoor: "right" }
             ]
         };
 
@@ -220,7 +236,7 @@
             ezakano: { text: "江坂野異人町はこちらです。", audio: "audio/fac_ezakano.wav" }
         };
 
-        const lineEnMap = { tozai: "Tozai Line", horiri: "Horiri Line" };
+        const lineEnMap = { tozai: "Tozai Line", horiri: "Horiri Line", tozaihoriri: "TozaiHoriri Line" };
         const typeEnMap = { local: "Local", rapid: "Rapid", express: "Express", extra: "Special" };
 
         let currentPlaylist = [];
@@ -671,7 +687,7 @@
                 if (simpleMode === "off") {
                     let stationAds = [];
                     
-                    if (line === "tozai") {
+                    if (line === "tozai" || line === "tozaihoriri") {
                         const generalAds = [
                             { id: "at", text: "音響装置なら任せて安心のAT音響は、安小駅東口からすぐです。", audio: ["audio/ad_at_audio_v2.wav"], station: "yasugo" },
                             { id: "wattsu", text: "専門スタッフが丁寧にサポート。家電のことなら、地域最安値のワッツデンキへ。", audio: ["audio/ad_wattsu_denki_v2.wav"], station: null },
@@ -704,12 +720,19 @@
                                 stationAds = shuffledAds.slice(0, 2);
                             }
                         }
-                    } else if (line === "horiri") {
+                    } else if (line === "horiri" || line === "tozaihoriri") {
                         if (st.id === "midoridai") {
                             stationAds.push({
                                 text: "未来の私に、きっと誇れる今日を。堀理大学 みどり台キャンパスはこちらです。",
                                 audio: ["audio/ad_midoridai.wav"]
                             });
+                        }
+                    }
+
+                    stationAds.forEach(ad => {
+                        combinedText += "\n\n" + ad.text;
+                        finalAudioList.push(...ad.audio);
+                    });
                         }
                     }
 
@@ -857,7 +880,7 @@
                 let transferAdded = false;
                 const playTransfer = (st.id !== "maiyama" && st.id !== "wattsu");
 
-                if (!globalTransferCut) {
+               if (!globalTransferCut) {
                     if (line === "tozai" && playTransfer) {
                         if (st.id === "yasugo") {
                             if (globalIsUpbound) {
@@ -914,6 +937,20 @@
                                 arrText += "堀理方面は、お乗り換えです。";
                                 jpAudioList.push("audio/transfer_horiri_bound.wav");
                             }
+                            transferAdded = true;
+                        }
+                    } else if (line === "tozaihoriri") {
+                        if (st.id === "nishihoriri") {
+                            arrText += "輪厚方面は、お乗り換えです。";
+                            jpAudioList.push("audio/transfer_wattsu.wav");
+                            transferAdded = true;
+                        } else if (st.id === "natsu") {
+                            arrText += "芽蒲・舞山方面は、お乗り換えです。";
+                            jpAudioList.push("audio/stop_megama.wav", 150, "audio/transfer_maiyama.wav");
+                            transferAdded = true;
+                        } else if (st.id === "yasugo") {
+                            arrText += "舞山方面は、お乗り換えです。";
+                            jpAudioList.push("audio/transfer_maiyama.wav");
                             transferAdded = true;
                         }
                     }
