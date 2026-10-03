@@ -316,7 +316,8 @@
             const typeSelect = document.getElementById("typeSelect");
             const originSelect = document.getElementById("originSelect");
 
-            if (line === "horiri") {
+            // 
+            if (line === "horiri" || line === "tozaihoriri") {
                 typeSelect.value = "local";
                 typeSelect.disabled = true;
             } else {
@@ -330,6 +331,7 @@
             const currentOrigin = originSelect.value;
             originSelect.innerHTML = "";
 
+            // 
             stationsData[line].forEach(station => {
                 if (station.terminal && station.type[currentType]) {
                     const option = document.createElement("option");
@@ -339,8 +341,11 @@
                 }
             });
 
+            // 
             if (isLineChanged && line === "horiri") {
                 originSelect.value = "ezakano";
+            } else if (isLineChanged && line === "tozaihoriri") {
+                originSelect.value = "maiyama"; // 
             } else if (Array.from(originSelect.options).some(opt => opt.value === currentOrigin)) {
                 originSelect.value = currentOrigin;
             } else if (originSelect.options.length > 0) {
@@ -350,7 +355,7 @@
 
             updateDestOptions();
 
-            if (isLineChanged && line === "horiri") {
+            if (isLineChanged && (line === "horiri" || line === "tozaihoriri")) {
                 const afterArrivalSelect = document.getElementById("afterArrivalSelect");
                 if (Array.from(afterArrivalSelect.options).some(opt => opt.value === "turnaround")) {
                     afterArrivalSelect.value = "turnaround";
@@ -368,6 +373,8 @@
             destSelect.innerHTML = "";
 
             const stations = stationsData[line];
+            if (!stations) return;
+
             const originIndex = stations.findIndex(s => s.id === originId);
             
             const megamaIdx = stations.findIndex(s => s.id === "megama");
@@ -390,19 +397,21 @@
                 destSelect.appendChild(option);
             });
 
+            // 
             if (Array.from(destSelect.options).some(opt => opt.value === currentDest)) {
                 destSelect.value = currentDest;
-            } else if (Array.from(destSelect.options).some(opt => opt.value === "wattsu")) {
+            } else if (line === "tozai" && Array.from(destSelect.options).some(opt => opt.value === "wattsu")) {
                 destSelect.value = "wattsu";
             } else if (line === "horiri" && Array.from(destSelect.options).some(opt => opt.value === "horiri_h")) {
                 destSelect.value = "horiri_h";
+            } else if (line === "tozaihoriri" && Array.from(destSelect.options).some(opt => opt.value === "ezakano")) {
+                destSelect.value = "ezakano"; // 
             } else if (destSelect.options.length > 0) {
                 destSelect.selectedIndex = 0;
             }
 
             handleStationChange();
         }
-
         function handleStationChange() {
             updateAfterArrivalOptions();
             updateCustomStops();
