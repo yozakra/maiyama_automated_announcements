@@ -307,7 +307,7 @@
             document.getElementById("doorRightBtn").style.display = "none";
         }
 
-        function updateForm() {
+       function updateForm() {
             const lineSelect = document.getElementById("lineSelect");
             const line = lineSelect.value;
             const isLineChanged = (lineSelect.dataset.lastLine !== undefined && lineSelect.dataset.lastLine !== line);
@@ -316,7 +316,6 @@
             const typeSelect = document.getElementById("typeSelect");
             const originSelect = document.getElementById("originSelect");
 
-            // 
             if (line === "horiri" || line === "tozaihoriri") {
                 typeSelect.value = "local";
                 typeSelect.disabled = true;
@@ -326,14 +325,19 @@
 
             const currentType = typeSelect.value;
             const customStopGroup = document.getElementById("customStopGroup");
-            customStopGroup.style.display = (currentType === "extra") ? "flex" : "none";
+            if (customStopGroup) {
+                customStopGroup.style.display = (currentType === "extra") ? "flex" : "none";
+            }
 
             const currentOrigin = originSelect.value;
             originSelect.innerHTML = "";
 
-            // 
-            stationsData[line].forEach(station => {
-                if (station.terminal && station.type[currentType]) {
+            const stations = stationsData[line] || [];
+
+            // 始発駅の生成（terminal判定）
+            stations.forEach(station => {
+                // ※もし全駅を始発駅にしたい場合は 「if (station.type[currentType])」 だけにしてください
+                if (station.terminal && station.type && station.type[currentType]) {
                     const option = document.createElement("option");
                     option.value = station.id;
                     option.text = station.name;
@@ -341,23 +345,27 @@
                 }
             });
 
-            // 
-            if (isLineChanged && line === "horiri") {
-                originSelect.value = "ezakano";
-            } else if (isLineChanged && line === "tozaihoriri") {
-                originSelect.value = "maiyama"; // 
+            // 始発駅のデフォルト選択処理
+            if (isLineChanged) {
+                if (line === "horiri") originSelect.value = "ezakano";
+                else if (line === "tozaihoriri") originSelect.value = "maiyama";
+                else originSelect.selectedIndex = 0;
             } else if (Array.from(originSelect.options).some(opt => opt.value === currentOrigin)) {
                 originSelect.value = currentOrigin;
             } else if (originSelect.options.length > 0) {
-                if (line === "horiri") originSelect.value = "ezakano";
-                else originSelect.selectedIndex = 0;
+                originSelect.selectedIndex = 0;
+            }
+
+            // 始発駅が選ばれているか最終チェック
+            if (!originSelect.value && originSelect.options.length > 0) {
+                originSelect.selectedIndex = 0;
             }
 
             updateDestOptions();
 
             if (isLineChanged && (line === "horiri" || line === "tozaihoriri")) {
                 const afterArrivalSelect = document.getElementById("afterArrivalSelect");
-                if (Array.from(afterArrivalSelect.options).some(opt => opt.value === "turnaround")) {
+                if (afterArrivalSelect && Array.from(afterArrivalSelect.options).some(opt => opt.value === "turnaround")) {
                     afterArrivalSelect.value = "turnaround";
                 }
             }
@@ -366,29 +374,31 @@
         function updateDestOptions() {
             const line = document.getElementById("lineSelect").value;
             const type = document.getElementById("typeSelect").value;
-            const originId = document.getElementById("originSelect").value;
+            const originSelect = document.getElementById("originSelect");
+            const originId = originSelect ? originSelect.value : "";
             const destSelect = document.getElementById("destSelect");
             const currentDest = destSelect.value;
 
             destSelect.innerHTML = "";
 
-            const stations = stationsData[line];
-            if (!stations) return;
+            const stations = stationsData[line] || [];
+            if (stations.length === 0) return;
 
             const originIndex = stations.findIndex(s => s.id === originId);
-            
             const megamaIdx = stations.findIndex(s => s.id === "megama");
             const ohiIdx = stations.findIndex(s => s.id === "ohi");
 
             stations.forEach((station, index) => {
-                if (!station.terminal || !station.type[type] || station.id === originId) {
+                // terminalの駅のみを終着駅候補にする（全駅対象にするなら !station.terminal を外す）
+                if (!station.terminal || !station.type || !station.type[type] || station.id === originId) {
                     return;
                 }
 
+                // 東西線固有の移動制限ロジック
                 if (line === "tozai") {
-                    if (station.id === "megama" && originIndex > megamaIdx) return;
-                    if (station.id === "ohi" && originIndex > ohiIdx) return;
-                    if (originId === "ohi" && index > ohiIdx) return;
+                    if (megamaIdx !== -1 && station.id === "megama" && originIndex > megamaIdx) return;
+                    if (ohiIdx !== -1 && station.id === "ohi" && originIndex > ohiIdx) return;
+                    if (ohiIdx !== -1 && originId === "ohi" && index > ohiIdx) return;
                 }
 
                 const option = document.createElement("option");
@@ -397,7 +407,7 @@
                 destSelect.appendChild(option);
             });
 
-            // 
+            // デフォルトの終着駅設定
             if (Array.from(destSelect.options).some(opt => opt.value === currentDest)) {
                 destSelect.value = currentDest;
             } else if (line === "tozai" && Array.from(destSelect.options).some(opt => opt.value === "wattsu")) {
@@ -405,12 +415,13 @@
             } else if (line === "horiri" && Array.from(destSelect.options).some(opt => opt.value === "horiri_h")) {
                 destSelect.value = "horiri_h";
             } else if (line === "tozaihoriri" && Array.from(destSelect.options).some(opt => opt.value === "ezakano")) {
-                destSelect.value = "ezakano"; // 
+                destSelect.value = "ezakano";
             } else if (destSelect.options.length > 0) {
                 destSelect.selectedIndex = 0;
             }
 
             handleStationChange();
+        }
         }
         function handleStationChange() {
             updateAfterArrivalOptions();
