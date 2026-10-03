@@ -684,7 +684,7 @@
                 let combinedText = jpText + "\n<span class='en-text'>" + enText + "</span>";
                 let finalAudioList = [...jpAudioList, 1000, ...enAudioList];
 
-                if (simpleMode === "off") {
+               if (simpleMode === "off") {
                     let stationAds = [];
                     
                     if (line === "tozai" || line === "tozaihoriri") {
@@ -733,13 +733,6 @@
                         combinedText += "\n\n" + ad.text;
                         finalAudioList.push(...ad.audio);
                     });
-                        }
-                    }
-
-                    stationAds.forEach(ad => {
-                        combinedText += "\n\n" + ad.text;
-                        finalAudioList.push(...ad.audio);
-                    });
 
                     const randomPhrases = [
                         { jpText: "この電車には、優先席があります。優先席を必要とされるお客様がいらっしゃいましたら、席をお譲りください。お客様のご協力をお願いいたします。", enText: "Please offer your seat to those who may need it.", jpAudio: "audio/manual_priority.wav", enAudio: "audio/manual_priority_en.wav" },
@@ -750,7 +743,7 @@
                         { jpText: "お客様にお願いいたします。ご乗車になりましたら、中ほどにお進みください。出入り口付近は、お降りになるお客様のためにお開けくださいますよう、ご協力をお願いいたします。", enText: "Once you have boarded the train, please move further down the train car and vacate the area near the doors for passengers getting off. Thank you for cooperation.", jpAudio: "audio/manner_move_inside.wav", enAudio: "audio/manner_move_inside_en.wav" },
                         { jpText: "お客様にお願いいたします。他のお客様のご迷惑となるような、大きな声での会話を控えていただくと共に、咳エチケットにご協力をお願いいたします。", enText: "Please refrain from talking in a loud voice that may disturb other passengers, and cooperate with coughing etiquette.", jpAudio: "audio/manner_cough.wav", enAudio: "audio/manner_cough_en.wav" },
                         { jpText: "電車は事故防止のため、やむを得ず急停車することがありますので、お立ちのお客様は、お近くの吊り革、手すりなどにお掴まりください。", enText: "Please hold on to the handrails or straps, as the train may stop suddenly.", jpAudio: "audio/manual_sudden_stop.wav", enAudio: "audio/manual_sudden_stop_en.wav" },
-                        { jpText: "お客様におお知らせいたします。交通局では、電車内および駅構内に掲出する広告を募集しております。詳しくは、舞山市交通局公式Discordサーバーをご覧ください。", enText: "We are currently accepting applications for advertisements inside trains and at stations. For more details, please visit the official Maiyama Transportation Discord server.", jpAudio: "audio/ad_boshu.wav", enAudio: "audio/ad_boshu_en.wav" }
+                        { jpText: "お客様にお知らせいたします。交通局では、電車内および駅構内に掲出する広告を募集しております。詳しくは、舞山市交通局公式Discordサーバーをご覧ください。", enText: "We are currently accepting applications for advertisements inside trains and at stations. For more details, please visit the official Maiyama Transportation Discord server.", jpAudio: "audio/ad_boshu.wav", enAudio: "audio/ad_boshu_en.wav" }
                     ];
                     const randomPhrase = randomPhrases[Math.floor(Math.random() * randomPhrases.length)];
 
@@ -766,7 +759,6 @@
                 currentPlaylist.push({ type: 'audio', text: combinedText, audio: finalAudioList });
                 currentPlaylist.push({ type: 'track_select', station: st, isLast: isLast });
             }
-
             currentPlaylist.push({
                 type: 'audio',
                 text: "お客様にお知らせいたします。この電車は当駅止まりです。引き続きのご乗車はできません。お近くのドアからお降りください。\n<span class='en-text'>This is the final destination of this train. Please disembark from the nearest doors.</span>",
